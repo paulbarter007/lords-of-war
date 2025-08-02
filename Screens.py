@@ -258,6 +258,21 @@ class BaseButton:
         pygame.draw.rect(self.screen, (150, 150, 150), self.rect)
         self.screen.blit(self.text_surface, self.text_rect)
 
+def temp_adjacent_spaces_visible(board, centre_space, team_type):
+    from Teams import Teams
+    for space in board:
+        if abs(space.rect.centerx - centre_space.rect.centerx) < 150 and \
+               abs(space.rect.centery - centre_space.rect.centery) < 150:
+            if team_type == Teams.WOLF:
+                space.is_temp_visible_by_wolf = True
+            elif team_type == Teams.BARBARIAN:
+                space.is_temp_visible_by_barbarian = True
+
+def clear_all_temp_visibility(board):
+    for space in board:
+        space.is_temp_visible_by_wolf = False
+        space.is_temp_visible_by_barbarian = False
+
 def draw_board(screen, board, current_active_team):
     # draw all the spaces and then draw all the units last so that spaces are not drawn over units
     from Teams import Teams
@@ -266,9 +281,11 @@ def draw_board(screen, board, current_active_team):
     for space in board:
         if len(space.units) > 0:
             if current_active_team.type == Teams.WOLF and space.is_visible_by_wolf:
+                temp_adjacent_spaces_visible(board, space, Teams.WOLF)
                 space.draw_units(screen)
             elif current_active_team.type == Teams.BARBARIAN and space.is_visible_by_barbarian:
                 space.draw_units(screen)
+                temp_adjacent_spaces_visible(board, space, Teams.BARBARIAN)
 
 def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y, current_active_team):
     row_nr = 0

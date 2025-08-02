@@ -33,6 +33,8 @@ class BaseSpace():
         self.is_selected = False
         self.is_visible_by_barbarian = False
         self.is_visible_by_wolf = False
+        self.is_temp_visible_by_wolf = False
+        self.is_temp_visible_by_barbarian = False
 
     def to_dict(self):
         return {
@@ -124,16 +126,14 @@ class BaseSpace():
     def draw(self, screen, current_active_team, hovered_unit=None):
         from Teams import Teams
         screen.blit(self.image, self.rect)
-        if current_active_team.type == Teams.WOLF:
-            if not self.is_visible_by_wolf:
-                self.draw_invisible_effect(screen)
-                return
-        if current_active_team.type == Teams.BARBARIAN:
-            if not self.is_visible_by_barbarian:
-                self.draw_invisible_effect(screen)
-                return
         if self.type in [SpaceTypes.CITY, SpaceTypes.BARBARIAN_VILLAGE] and self.owner:
             self.draw_team_effect(screen)
+        if current_active_team.type == Teams.WOLF:
+            if not self.is_visible_by_wolf and not self.is_temp_visible_by_wolf:
+                self.draw_invisible_effect(screen)
+        if current_active_team.type == Teams.BARBARIAN:
+            if not self.is_visible_by_barbarian or not self.is_temp_visible_by_barbarian:
+                self.draw_invisible_effect(screen)
         if self.is_valid_hover:
             self.draw_valid_hovered_effect(screen)
         if self.is_selected:
@@ -450,7 +450,7 @@ def total_terrain_move_penalty(current_space, unit, start_point, end_point, boar
     # Calculate the move penalty based on the terrain type between two points
     total_move_penalty = 0
     for space in board:
-        if space.rect.clipline(start_point, end_point) and space.id != current_space.id:
+        if space.rect.clipline(start_point, end_point): # and space.id != current_space.id:
             if unit.fly:
                 total_move_penalty += 50
             else:

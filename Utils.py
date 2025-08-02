@@ -59,6 +59,7 @@ def load_game(file_path):
 
 def handle_end_turn(board, screen, current_active_team, moving, current_active_unit, active_space,
                                 possible_dest_space_ids, team_wolf, team_barbarian):
+    from Screens import clear_all_temp_visibility
     restore_movement_units(board, current_active_team)
     current_active_team = team_barbarian if current_active_team.name == 'Wolf' else team_wolf
     moving = False
@@ -71,7 +72,7 @@ def handle_end_turn(board, screen, current_active_team, moving, current_active_u
         team_barbarian.turn_nr += 1
     current_active_team.calculate_resources()
     handle_random_event(current_active_team, screen, team_wolf, team_barbarian, board)
-
+    clear_all_temp_visibility(board)
     return current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf, team_barbarian
 
 def increase_random_unit_attack_strength(team, board):
