@@ -280,10 +280,10 @@ def draw_board(screen, board, current_active_team):
         space.draw(screen, current_active_team)
     for space in board:
         if len(space.units) > 0:
-            if current_active_team.type == Teams.WOLF and space.is_visible_by_wolf:
+            if current_active_team.type == Teams.WOLF and (space.is_visible_by_wolf or space.is_temp_visible_by_wolf):
                 temp_adjacent_spaces_visible(board, space, Teams.WOLF)
                 space.draw_units(screen)
-            elif current_active_team.type == Teams.BARBARIAN and space.is_visible_by_barbarian:
+            elif current_active_team.type == Teams.BARBARIAN and (space.is_visible_by_barbarian or space.is_temp_visible_by_barbarian):
                 space.draw_units(screen)
                 temp_adjacent_spaces_visible(board, space, Teams.BARBARIAN)
 
@@ -322,8 +322,10 @@ def draw_selected_space(unit_info_screen, screen, current_active_unit, active_sp
         display_unit.rect.right = unit_info_screen.left + 100
     if current_active_team.type == Teams.WOLF:
         display_unit.is_visible_by_wolf = True
+        display_unit.is_temp_visible_by_wolf = True
     elif current_active_team.type == Teams.BARBARIAN:
         display_unit.is_visible_by_barbarian = True
+        display_unit.is_temp_visible_by_barbarian = True
     display_unit.draw(screen, current_active_team)
 
 def display_screen_and_resources(screen, board, end_turn_button, fire_button, resources_screen, unit_info_screen,

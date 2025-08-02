@@ -132,7 +132,7 @@ class BaseSpace():
             if not self.is_visible_by_wolf and not self.is_temp_visible_by_wolf:
                 self.draw_invisible_effect(screen)
         if current_active_team.type == Teams.BARBARIAN:
-            if not self.is_visible_by_barbarian or not self.is_temp_visible_by_barbarian:
+            if not self.is_visible_by_barbarian and not self.is_temp_visible_by_barbarian:
                 self.draw_invisible_effect(screen)
         if self.is_valid_hover:
             self.draw_valid_hovered_effect(screen)
@@ -291,8 +291,8 @@ class Ruins(BaseSpace):
         from Teams import Teams
         super().draw(screen, current_active_team)
         if (not self.searched and
-                ((current_active_team.type == Teams.WOLF and self.is_visible_by_wolf) or
-                 (current_active_team.type == Teams.BARBARIAN and self.is_visible_by_barbarian))):
+                ((current_active_team.type == Teams.WOLF and (self.is_visible_by_wolf or self.is_temp_visible_by_wolf)) or
+                 (current_active_team.type == Teams.BARBARIAN and (self.is_visible_by_barbarian or self.is_temp_visible_by_barbarian)))):
             ruins_image = pygame.image.load(f'images\\ruins-magic.png')
             ruins_image.set_alpha(130)
             overlay_rect = ruins_image.get_rect(centerx=self.rect.centerx, centery=self.rect.centery)
@@ -324,7 +324,8 @@ def get_current_active_unit(screen, active_team, x, y, board):
     unit_stack = []
     get_bottom_of_stack = False
     for space in board:
-        if ((active_team.type == Teams.WOLF and space.is_visible_by_wolf) or (active_team.type == Teams.BARBARIAN and space.is_visible_by_barbarian)):
+        if ((active_team.type == Teams.WOLF and (space.is_visible_by_wolf or space.is_temp_visible_by_wolf)) or
+                (active_team.type == Teams.BARBARIAN and (space.is_visible_by_barbarian or space.is_temp_visible_by_barbarian))):
             if space.rect.collidepoint(x, y):
                 active_space = space
             for unit in space.units:
