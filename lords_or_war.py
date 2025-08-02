@@ -12,6 +12,8 @@ from Units.Spaces import get_current_active_unit, \
 
 YELLOW = (255, 255, 0)
 BLUE = (0, 0, 255)
+PANEL_COLOR = (140, 140, 140)
+BUTTON_COLOR = (100, 100, 100)
 
 w, h = 1550, 795
 screen = pygame.display.set_mode((w, h))
@@ -32,23 +34,28 @@ current_active_team = team_wolf
 # boards for info
 resources_screen = BaseScreen(screen, 1120, 20, 400, 150)
 unit_info_screen = BaseScreen(screen, 1120, 200, 400, 250)
-end_turn_button = BaseButton(screen, 'END TURN', 20, 720, 150, 50)
-fire_button = BaseButton(screen, 'FIRE', 200, 720, 100, 50)
-move_button = BaseButton(screen, 'MOVE', 320, 720, 100, 50)
-move_button.pressed = True
-buy_settler_button = BaseButton(screen, 'Buy settler', 530, 720, 200, 50)
-settle_button = BaseButton(screen, 'SETTLE', 750, 720, 200, 50)
-buy_soldier_button = BaseButton(screen, 'Buy Soldier', 1000, 720, 200, 50)
-research_road_button = BaseButton(screen, 'Research Road', 1100, 500, 120, 22)
-research_archery_button = BaseButton(screen, 'Research Archery', 1100, 550, 120, 18)
-knight_button = BaseButton(screen, 'Research Knights', 1290, 550, 120, 18)
-speed_button = BaseButton(screen, 'Research Speed Spell', 1100, 600, 130, 18)
-bloodlust_button = BaseButton(screen, 'Research Bloodlust Spell', 1100, 650, 150, 18)
-save_game_button = BaseButton(screen, 'Save Game', 1250, 720, 200, 50)
-search_ruins_button = BaseButton(screen, 'Search Ruins', 1250, 390, 120, 30)
-bottom_panel = BaseButton(screen, "", 0, 720, w, 75)
+
+end_turn_button = BaseButton(screen, 'END TURN', 20, 730, 150, 40, base_color=BUTTON_COLOR)
+move_button = BaseButton(screen, 'MOVE', 320, 730, 100, 40, base_color=BUTTON_COLOR)
+move_button.pressed = False
+fire_button = BaseButton(screen, 'FIRE', 200, 730, 100, 40, base_color=BUTTON_COLOR)
+fire_button.pressed = True
+buy_settler_button = BaseButton(screen, 'Buy settler', 530, 730, 200, 40, base_color=BUTTON_COLOR)
+settle_button = BaseButton(screen, 'SETTLE', 750, 730, 200, 40, base_color=BUTTON_COLOR)
+buy_soldier_button = BaseButton(screen, 'Buy Soldier', 1000, 730, 200, 40, base_color=BUTTON_COLOR)
+save_game_button = BaseButton(screen, 'Save Game', 1250, 730, 200, 40, base_color=BUTTON_COLOR)
+
+research_road_button = BaseButton(screen, 'Research Road', 1120, 500, 120, 22, base_color=BUTTON_COLOR)
+research_archery_button = BaseButton(screen, 'Research Archery', 1120, 550, 120, 18, base_color=BUTTON_COLOR)
+knight_button = BaseButton(screen, 'Research Knights', 1290, 550, 120, 18, base_color=BUTTON_COLOR)
+speed_button = BaseButton(screen, 'Research Speed Spell', 1120, 600, 130, 18, base_color=BUTTON_COLOR)
+bloodlust_button = BaseButton(screen, 'Research Bloodlust Spell', 1120, 650, 150, 18, base_color=BUTTON_COLOR)
+
+search_ruins_button = BaseButton(screen, 'Search Ruins', 1250, 390, 120, 30, base_color=BUTTON_COLOR)
+
+bottom_panel = BaseButton(screen, "", 0, 720, w, 185, base_color=PANEL_COLOR)
 right_panel_width = 440
-right_panel = BaseButton(screen, "", 1100, 0, right_panel_width, h - 75)
+right_panel = BaseButton(screen, "", 1100, 0, right_panel_width, h - 75, base_color=PANEL_COLOR)
 
 # Initialising variables
 running = True

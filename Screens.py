@@ -238,12 +238,14 @@ class ResourcesScreen(BaseScreen):
         print("Displaying resources information.")
 
 class BaseButton:
-    def __init__(self, screen, text, left, top, width, height):
+
+    def __init__(self, screen, text, left, top, width, height, base_color=None):
         self.screen = screen
         self.rect = pygame.Rect(left, top, width, height)
         self.text_surface = default_font.render(text, True, (255, 255, 255))
         self.text_rect = self.text_surface.get_rect(center=self.rect.center)
         self.pressed = False
+        self.base_color = base_color
 
     def draw(self, new_text="", font_type=None):
         font = default_font
@@ -251,11 +253,11 @@ class BaseButton:
             font = pygame.font.SysFont(None, 24)
         if new_text:
             if self.pressed:
-                self.text_surface = font.render(new_text, True, (100, 100, 100))
+                self.text_surface = font.render(new_text, True, (120, 120, 120))
             else:
                 self.text_surface = font.render(new_text, True, (255, 255, 255))
             self.text_rect = self.text_surface.get_rect(center=self.rect.center)
-        pygame.draw.rect(self.screen, (150, 150, 150), self.rect)
+        pygame.draw.rect(self.screen, self.base_color, self.rect)
         self.screen.blit(self.text_surface, self.text_rect)
 
 def temp_adjacent_spaces_visible(board, centre_space, team_type):
@@ -336,11 +338,11 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
                                  knight_button, bottom_panel, right_panel):
     screen.fill(SCREEN_BACKGROUND)
     draw_board(screen, board, current_active_team)
-    bottom_panel.draw()
     right_panel.draw()
+    bottom_panel.draw()
     end_turn_button.draw()
-    fire_button.draw(new_text='FIRE')
     move_button.draw(new_text='MOVE')
+    fire_button.draw(new_text='FIRE')
     if current_active_team.type == Teams.WOLF:
         resources_screen.display(messages=team_wolf.get_info())
     elif current_active_team.type == Teams.BARBARIAN:
@@ -360,5 +362,3 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
     research_bloodlust_spell_button.draw(new_text='Bloodlust Spell [6]', font_type='small')
     if current_active_unit and current_active_unit.type == 'Hero':
         search_ruins_button.draw(new_text='Search Ruins', font_type='small')
-
-
