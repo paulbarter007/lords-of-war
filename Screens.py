@@ -8,7 +8,7 @@ from sounds.Sounds import play_sound
 
 pygame.init()
 default_font = pygame.font.SysFont(None, 32)
-SCREEN_BACKGROUND = (60, 60, 60)
+SCREEN_BACKGROUND = (80, 80, 80)
 
 def toggle_button(button1, button2):
     if button1.pressed:
@@ -258,15 +258,19 @@ class BaseButton:
         pygame.draw.rect(self.screen, (150, 150, 150), self.rect)
         self.screen.blit(self.text_surface, self.text_rect)
 
-def draw_board(screen, board):
+def draw_board(screen, board, current_active_team):
     # draw all the spaces and then draw all the units last so that spaces are not drawn over units
+    from Teams import Teams
     for space in board:
-        space.draw(screen)
+        space.draw(screen, current_active_team)
     for space in board:
         if len(space.units) > 0:
-            space.draw_units(screen)
+            if current_active_team.type == Teams.WOLF and space.is_visible_by_wolf:
+                space.draw_units(screen)
+            elif current_active_team.type == Teams.BARBARIAN and space.is_visible_by_barbarian:
+                space.draw_units(screen)
 
-def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y):
+def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y, current_active_team):
     row_nr = 0
     col_nr = 0
     space_width = 75
@@ -282,14 +286,15 @@ def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y)
         current_space_y = (row_nr * space_height) + y_offset - (top_y * space_height)
 
         space.rect.center = (current_space_x, current_space_y)
-        space.draw(screen)
+        space.draw(screen, current_active_team)
         if len(space.units) > 0:
             for unit in space.units:
                 unit.rect.center = (current_space_x, current_space_y)
             space.draw_units(screen)
         col_nr += 1
 
-def draw_selected_space(unit_info_screen, screen, current_active_unit, active_space):
+def draw_selected_space(unit_info_screen, screen, current_active_unit, active_space, current_active_team):
+    from Teams import Teams
     if current_active_unit:
         display_unit = current_active_unit.clone_unit()
         display_unit.rect.top = unit_info_screen.top + 170
@@ -298,15 +303,22 @@ def draw_selected_space(unit_info_screen, screen, current_active_unit, active_sp
         display_unit = active_space.clone_space()
         display_unit.rect.top = unit_info_screen.top + 140
         display_unit.rect.right = unit_info_screen.left + 100
-    display_unit.draw(screen)
+    if current_active_team.type == Teams.WOLF:
+        display_unit.is_visible_by_wolf = True
+    elif current_active_team.type == Teams.BARBARIAN:
+        display_unit.is_visible_by_barbarian = True
+    display_unit.draw(screen, current_active_team)
 
 def display_screen_and_resources(screen, board, end_turn_button, fire_button, resources_screen, unit_info_screen,
                                  current_active_team, team_wolf, team_barbarian, current_selected_unit_info,
                                  buy_button, settle_button, buy_soldier_button, research_road_button,
                                  research_archery_button, save_game_button, move_button, current_active_unit, active_space,
                                  search_ruins_button, research_speed_spell_button, research_bloodlust_spell_button,
-                                 knight_button):
+                                 knight_button, bottom_panel, right_panel):
     screen.fill(SCREEN_BACKGROUND)
+    draw_board(screen, board, current_active_team)
+    bottom_panel.draw()
+    right_panel.draw()
     end_turn_button.draw()
     fire_button.draw(new_text='FIRE')
     move_button.draw(new_text='MOVE')
@@ -317,7 +329,7 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
 
     unit_info_screen.display(text=None, messages=current_selected_unit_info)
     if current_active_unit or active_space:
-        draw_selected_space(unit_info_screen, screen, current_active_unit, active_space)
+        draw_selected_space(unit_info_screen, screen, current_active_unit, active_space, current_active_team)
     buy_button.draw(new_text='BUY SETTLER [8]')
     settle_button.draw(new_text='SETTLE')
     buy_soldier_button.draw(new_text='BUY SOLDIER [5]')
@@ -329,5 +341,5 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
     research_bloodlust_spell_button.draw(new_text='Bloodlust Spell [6]', font_type='small')
     if current_active_unit and current_active_unit.type == 'Hero':
         search_ruins_button.draw(new_text='Search Ruins', font_type='small')
-    draw_board(screen, board)
+
 

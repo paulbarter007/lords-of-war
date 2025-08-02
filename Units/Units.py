@@ -76,7 +76,7 @@ class Hero(BaseUnit):
             return
         if not ruin.searched:
             ruin.search()
-            ruin.draw(screen)
+            ruin.draw(screen, current_active_team)
             handle_ruins_searched(ruin, current_active_team, screen, self)
         else:
             show_popup(screen, "This Ruin has already been searched")

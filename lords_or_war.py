@@ -19,9 +19,9 @@ space_width = 75
 space_height = 75
 from Board import make_random_board
 from Teams import team_wolf, team_barbarian
-board_height_units = 9
-board_width_units = 14
-board = make_random_board(team_wolf, team_barbarian, 14, 9, space_width, space_height, percentage_road=0.0)
+board_height_units = 20
+board_width_units = 20
+board = make_random_board(team_wolf, team_barbarian, board_width_units, board_height_units, space_width, space_height, percentage_road=0.0)
 top_x = 0
 top_y = 0
 current_active_team = team_wolf
@@ -30,8 +30,8 @@ current_active_team = team_wolf
 # board, current_active_team, team_wolf, team_barbarian = load_game("saved_games\\20250715_133918_game.json")
 
 # boards for info
-resources_screen = BaseScreen(screen, 1100, 20, 400, 150)
-unit_info_screen = BaseScreen(screen, 1100, 200, 400, 250)
+resources_screen = BaseScreen(screen, 1120, 20, 400, 150)
+unit_info_screen = BaseScreen(screen, 1120, 200, 400, 250)
 end_turn_button = BaseButton(screen, 'END TURN', 20, 720, 150, 50)
 fire_button = BaseButton(screen, 'FIRE', 200, 720, 100, 50)
 move_button = BaseButton(screen, 'MOVE', 320, 720, 100, 50)
@@ -39,13 +39,16 @@ move_button.pressed = True
 buy_settler_button = BaseButton(screen, 'Buy settler', 530, 720, 200, 50)
 settle_button = BaseButton(screen, 'SETTLE', 750, 720, 200, 50)
 buy_soldier_button = BaseButton(screen, 'Buy Soldier', 1000, 720, 200, 50)
-research_road_button = BaseButton(screen, 'Research Road', 1090, 500, 120, 22)
-research_archery_button = BaseButton(screen, 'Research Archery', 1090, 550, 120, 18)
+research_road_button = BaseButton(screen, 'Research Road', 1100, 500, 120, 22)
+research_archery_button = BaseButton(screen, 'Research Archery', 1100, 550, 120, 18)
 knight_button = BaseButton(screen, 'Research Knights', 1290, 550, 120, 18)
-speed_button = BaseButton(screen, 'Research Speed Spell', 1090, 600, 130, 18)
-bloodlust_button = BaseButton(screen, 'Research Bloodlust Spell', 1090, 650, 150, 18)
+speed_button = BaseButton(screen, 'Research Speed Spell', 1100, 600, 130, 18)
+bloodlust_button = BaseButton(screen, 'Research Bloodlust Spell', 1100, 650, 150, 18)
 save_game_button = BaseButton(screen, 'Save Game', 1250, 720, 200, 50)
 search_ruins_button = BaseButton(screen, 'Search Ruins', 1250, 390, 120, 30)
+bottom_panel = BaseButton(screen, "", 0, 720, w, 75)
+right_panel_width = 440
+right_panel = BaseButton(screen, "", 1100, 0, right_panel_width, h - 75)
 
 # Initialising variables
 running = True
@@ -65,7 +68,7 @@ while running:
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
-            elif event.type == MOUSEBUTTONDOWN:
+            elif event.type == MOUSEBUTTONDOWN and (hasattr(event, "button") and event.button not in [4, 5]):
                 ####################
                 # MOUSE CLICK
                 remove_units_selected(board)
@@ -81,12 +84,16 @@ while running:
                                    bloodlust_button, knight_button))
                 current_active_unit, active_space, unit_stack = get_current_active_unit(screen, current_active_team,
                                                                                         event.pos[0], event.pos[1], board)
-                if current_active_unit:
-                    moving = True
-                    current_selected_unit_info = current_active_unit.get_info(unit_stack)
+                if active_space and not (current_active_team == team_wolf and active_space.is_visible_by_wolf) and not (current_active_team == team_barbarian and active_space.is_visible_by_barbarian):
+                    current_selected_unit_info = ["A mysterious mist!"]
+                    current_selected_unit_info = ["A mysterious mist!"]
                 else:
-                    if active_space:
-                        current_selected_unit_info = active_space.get_info()
+                    if current_active_unit:
+                            moving = True
+                            current_selected_unit_info = current_active_unit.get_info(unit_stack)
+                    else:
+                        if active_space:
+                            current_selected_unit_info = active_space.get_info()
 
             elif event.type == MOUSEBUTTONUP:
                 moving = False
@@ -109,26 +116,35 @@ while running:
                 # CHECKING WHERE CAN MOVE OR SHOOT
                 if moving:
                     current_hovered_space, possible_dest_space_ids = handle_hover(board, screen, current_active_unit, active_space,
-                                                                  event, firing_is_active)
+                                                                  event, firing_is_active, current_active_team)
                 remove_units_hovered(board)
                 hovered_unit = check_hover_unit(current_active_team, screen, board, event.pos)
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:
-                    top_y += 1
-                elif event.key == pygame.K_UP:
-                    top_y -= 1
+            elif event.type == pygame.KEYDOWN or (hasattr(event, "button") and event.type == pygame.MOUSEBUTTONDOWN and event.button in [4, 5]):
+                scrolled = False
+                if (hasattr(event, "key") and event.key == pygame.K_DOWN) or (hasattr(event, "button") and event.button == 5):
+                    if top_y < (board_height_units + 1) - (h / space_height):
+                        top_y += 3
+                        scrolled = True
+                elif (hasattr(event, "key") and event.key == pygame.K_UP) or (hasattr(event, "button") and event.button == 4):
+                    if top_y >= 1:
+                        top_y -= 3
+                        scrolled = True
                 elif event.key == pygame.K_LEFT:
-                    top_x -= 1
+                    if top_x >= 1:
+                        top_x -= 3
+                        scrolled = True
                 elif event.key == pygame.K_RIGHT:
-                    top_x += 1
-                if event.key in [pygame.K_DOWN, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT]:
-                    adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y)
+                    if top_x < (board_width_units + 1) - (w / space_width) + (right_panel_width / space_width):
+                        top_x += 3
+                        scrolled = True
+                if scrolled:
+                    adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y, current_active_team)
 
         display_screen_and_resources(screen, board, end_turn_button, fire_button, resources_screen, unit_info_screen,
                                      current_active_team, team_wolf, team_barbarian, current_selected_unit_info,
                                      buy_settler_button, settle_button, buy_soldier_button, research_road_button,
                                      research_archery_button, save_game_button, move_button, current_active_unit, active_space,
-                                     search_ruins_button, speed_button, bloodlust_button, knight_button)
+                                     search_ruins_button, speed_button, bloodlust_button, knight_button, bottom_panel, right_panel)
         pygame.display.update()
     except Exception as e:
         show_popup(screen, str(e))

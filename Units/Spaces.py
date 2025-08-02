@@ -31,6 +31,8 @@ class BaseSpace():
         self.is_invalid_target = False
         self.is_invalid_target_in_range = False
         self.is_selected = False
+        self.is_visible_by_barbarian = False
+        self.is_visible_by_wolf = False
 
     def to_dict(self):
         return {
@@ -119,8 +121,17 @@ class BaseSpace():
         overlay_rect = target_image.get_rect(centerx=self.rect.centerx, centery=self.rect.centery)
         screen.blit(target_image, overlay_rect)
 
-    def draw(self, screen, hovered_unit=None):
+    def draw(self, screen, current_active_team, hovered_unit=None):
+        from Teams import Teams
         screen.blit(self.image, self.rect)
+        if current_active_team.type == Teams.WOLF:
+            if not self.is_visible_by_wolf:
+                self.draw_invisible_effect(screen)
+                return
+        if current_active_team.type == Teams.BARBARIAN:
+            if not self.is_visible_by_barbarian:
+                self.draw_invisible_effect(screen)
+                return
         if self.type in [SpaceTypes.CITY, SpaceTypes.BARBARIAN_VILLAGE] and self.owner:
             self.draw_team_effect(screen)
         if self.is_valid_hover:
@@ -133,6 +144,7 @@ class BaseSpace():
             self.draw_target_effect(screen, valid_target=False)
         elif self.is_invalid_target_in_range:
             self.draw_target_effect(screen, valid_target=False, in_range=True)
+
 
     def draw_selected_effect(self, screen):
         # Transparent highlight effect for selected unit:
@@ -164,6 +176,13 @@ class BaseSpace():
             team_img = pygame.image.load(f'images\\units\\wolf-team.png')
         elif self.owner.name == "Barbarian":
             team_img = pygame.image.load(f'images\\units\\barbarian-team.png')
+        team_img.convert_alpha()
+        overlay_rect = team_img.get_rect(topright=self.rect.topright)
+        screen.blit(team_img, overlay_rect)
+
+    def draw_invisible_effect(self, screen):
+        team_img = None
+        team_img = pygame.image.load(f'images\\units\\smoke.png')
         team_img.convert_alpha()
         overlay_rect = team_img.get_rect(topright=self.rect.topright)
         screen.blit(team_img, overlay_rect)
@@ -268,9 +287,12 @@ class Ruins(BaseSpace):
         self.move_penalty = 150
         self.searched = False
 
-    def draw(self, screen):
-        super().draw(screen)
-        if not self.searched:
+    def draw(self, screen, current_active_team, hovered_unit=None):
+        from Teams import Teams
+        super().draw(screen, current_active_team)
+        if (not self.searched and
+                ((current_active_team.type == Teams.WOLF and self.is_visible_by_wolf) or
+                 (current_active_team.type == Teams.BARBARIAN and self.is_visible_by_barbarian))):
             ruins_image = pygame.image.load(f'images\\ruins-magic.png')
             ruins_image.set_alpha(130)
             overlay_rect = ruins_image.get_rect(centerx=self.rect.centerx, centery=self.rect.centery)
@@ -296,34 +318,36 @@ def calculate_city_occupied(active_team, inactive_team, city):
     city.owner = active_team
 
 def get_current_active_unit(screen, active_team, x, y, board):
+    from Teams import Teams
     active_unit = None
     active_space = None
     unit_stack = []
     get_bottom_of_stack = False
     for space in board:
-        if space.rect.collidepoint(x, y):
-            active_space = space
-        for unit in space.units:
-            # check that the mouse is hovering over the unit within the space
-            if unit.rect.collidepoint(x, y) and unit.team == active_team.type:
-                active_unit = unit
-                if len(space.units) > 1:
-                    for unit in space.units:
-                        unit.stacked = True
-                    unit_stack = space.units
-                    if unit.stack_clicked:  # allow one click in the stack before changing the order
-                        # If the previously active unit is the same as the current unit, get bottom unit, to allow selecting different unit
-                        get_bottom_of_stack = True
-                        unit.stack_clicked = False
-                        break
-                    else:
-                        unit.stack_clicked = True
-                        break
-                else:
-                    # If the unit is found, return the unit
+        if ((active_team.type == Teams.WOLF and space.is_visible_by_wolf) or (active_team.type == Teams.BARBARIAN and space.is_visible_by_barbarian)):
+            if space.rect.collidepoint(x, y):
+                active_space = space
+            for unit in space.units:
+                # check that the mouse is hovering over the unit within the space
+                if unit.rect.collidepoint(x, y) and unit.team == active_team.type:
                     active_unit = unit
-                    unit.stacked = False
-                    break
+                    if len(space.units) > 1:
+                        for unit in space.units:
+                            unit.stacked = True
+                        unit_stack = space.units
+                        if unit.stack_clicked:  # allow one click in the stack before changing the order
+                            # If the previously active unit is the same as the current unit, get bottom unit, to allow selecting different unit
+                            get_bottom_of_stack = True
+                            unit.stack_clicked = False
+                            break
+                        else:
+                            unit.stack_clicked = True
+                            break
+                    else:
+                        # If the unit is found, return the unit
+                        active_unit = unit
+                        unit.stacked = False
+                        break
     if get_bottom_of_stack:
         # start with last element
         new_stack = [unit_stack[len(unit_stack)-1]]
@@ -371,6 +395,7 @@ def shoot_at_space(board, unit, mouse_position):
                     space.remove_unit(space.units[0])
 
 def snap_to_space(screen, active_team, inactive_team, board, possible_dest_spaces, unit, dragged_from_space: BaseSpace):
+    from Teams import Teams
     for space in board:
         if (abs(unit.rect.centerx - space.rect.centerx) < 45) and (abs(unit.rect.centery - space.rect.centery) < 45):
             unit.rect.center = space.rect.center
@@ -390,6 +415,10 @@ def snap_to_space(screen, active_team, inactive_team, board, possible_dest_space
                         break
                 else:
                     space.add_unit(unit)
+                    if active_team.type == Teams.WOLF:
+                        space.is_visible_by_wolf = True
+                    elif active_team.type == Teams.BARBARIAN:
+                        space.is_visible_by_barbarian = True
                     unit.position = space.rect.center
                     unit.rect.center = space.rect.center
                 if space.type in [SpaceTypes.CITY, SpaceTypes.BARBARIAN_VILLAGE]:
@@ -441,7 +470,7 @@ def remove_hover_effects(board):
             unit.is_invalid_target = False
             unit.selected = False
 
-def handle_hover(board, screen, current_active_unit, active_space, event, firing):
+def handle_hover(board, screen, current_active_unit, active_space, event, firing, current_active_team):
     remove_hover_effects(board)
     current_hovered_space = possible_dest_space_ids = None
     if current_active_unit and active_space:
@@ -449,7 +478,7 @@ def handle_hover(board, screen, current_active_unit, active_space, event, firing
             current_active_unit.rect.move_ip(event.rel)
         current_hovered_space, possible_dest_space_ids = hover_space(board, screen, current_active_unit,
                                                                          active_space,
-                                                                         event.pos[0], event.pos[1], firing=firing)
+                                                                         event.pos[0], event.pos[1], current_active_team, firing=firing)
     return current_hovered_space, possible_dest_space_ids
 
 def check_hover_unit(active_team, screen, board, mouse_position, firing=False):
@@ -462,10 +491,10 @@ def check_hover_unit(active_team, screen, board, mouse_position, firing=False):
                     unit.is_hovered = True
                 return unit
 
-def handle_move(distance, unit, centre_active_space, centre_current_space, space, screen, board):
+def handle_move(distance, unit, centre_active_space, centre_current_space, space, screen, board, current_active_team):
     possible_dest_space_ids = set()
     terrain_penalty = total_terrain_move_penalty(space, unit, centre_active_space, centre_current_space, board)
-    space.draw(screen)
+    space.draw(screen, current_active_team)
     if unit.movement >= terrain_penalty:
         enemy = None
         if space.units and space.units[0].team != unit.team:
@@ -476,8 +505,8 @@ def handle_move(distance, unit, centre_active_space, centre_current_space, space
         space.is_invalid_hover = True
     return list(possible_dest_space_ids)
 
-def handle_shoot(distance, unit, centre_active_space, centre_current_space, space, screen, board):
-    space.draw(screen)
+def handle_shoot(distance, unit, centre_active_space, centre_current_space, space, screen, board, current_active_team):
+    space.draw(screen, current_active_team)
     possible_dest_shooting_ids = set()
     if distance <= (unit.range):
         if space.units and space.units[0].team != unit.team:
@@ -496,7 +525,7 @@ def handle_shoot(distance, unit, centre_active_space, centre_current_space, spac
             enemy.is_invalid_target = True
     return list(possible_dest_shooting_ids)
 
-def hover_space(board, screen, unit, active_space, x, y, firing=False):
+def hover_space(board, screen, unit, active_space, x, y, current_active_team, firing=False):
     # Manage moving and shooting
     for space in board:
         if space.rect.collidepoint(x, y) and space.id != active_space.id:
@@ -504,9 +533,11 @@ def hover_space(board, screen, unit, active_space, x, y, firing=False):
             centre_current_space = (space.rect.centerx, space.rect.centery)
             distance = pygame.math.Vector2(centre_active_space).distance_to(centre_current_space)
             if firing:
-                return space, handle_shoot(distance, unit, centre_active_space, centre_current_space, space, screen, board)
+                return space, handle_shoot(distance, unit, centre_active_space, centre_current_space, space, screen, board,
+                                           current_active_team)
             else:
-                return space, handle_move(distance, unit, centre_active_space, centre_current_space, space, screen, board)
+                return space, handle_move(distance, unit, centre_active_space, centre_current_space, space, screen, board,
+                                          current_active_team)
 
     return None, []
 
