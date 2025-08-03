@@ -314,21 +314,25 @@ def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y,
 
 def draw_selected_space(unit_info_screen, screen, current_active_unit, active_space, current_active_team):
     from Teams import Teams
+    from Units.BaseUnit import BaseUnit
     if current_active_unit:
-        display_unit = current_active_unit.clone_unit()
-        display_unit.rect.top = unit_info_screen.top + 170
-        display_unit.rect.right = unit_info_screen.left + 80
+        display_unit_or_space = current_active_unit.clone_unit()
+        display_unit_or_space.rect.top = unit_info_screen.top + 170
+        display_unit_or_space.rect.right = unit_info_screen.left + 80
     elif active_space:
-        display_unit = active_space.clone_space()
-        display_unit.rect.top = unit_info_screen.top + 140
-        display_unit.rect.right = unit_info_screen.left + 100
+        display_unit_or_space = active_space.clone_space()
+        display_unit_or_space.rect.top = unit_info_screen.top + 140
+        display_unit_or_space.rect.right = unit_info_screen.left + 100
     if current_active_team.type == Teams.WOLF:
-        display_unit.is_visible_by_wolf = True
-        display_unit.is_temp_visible_by_wolf = True
+        display_unit_or_space.is_visible_by_wolf = True
+        display_unit_or_space.is_temp_visible_by_wolf = True
     elif current_active_team.type == Teams.BARBARIAN:
-        display_unit.is_visible_by_barbarian = True
-        display_unit.is_temp_visible_by_barbarian = True
-    display_unit.draw(screen, current_active_team)
+        display_unit_or_space.is_visible_by_barbarian = True
+        display_unit_or_space.is_temp_visible_by_barbarian = True
+    if isinstance(display_unit_or_space, BaseUnit):
+        display_unit_or_space.draw(screen)
+    else:
+        display_unit_or_space.draw(screen, current_active_team)
 
 def display_screen_and_resources(screen, board, end_turn_button, fire_button, resources_screen, unit_info_screen,
                                  current_active_team, team_wolf, team_barbarian, current_selected_unit_info,

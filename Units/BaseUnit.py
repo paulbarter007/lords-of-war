@@ -23,6 +23,7 @@ class BaseUnit():
         self.can_shoot = False
         self.range = 0
         self.health = 20
+        self.initial_health = 20
         self.fly = False
         self.attack_power = 10
         self.defense_power = 5
@@ -113,13 +114,14 @@ class BaseUnit():
         highlight_surface.fill(highlight_color)
         screen.blit(highlight_surface, self.rect)
 
-    def draw_selected_effect(self, screen):
+    def draw_damaged_effect(self, screen):
         # Transparent highlight effect for selected unit:
-        # highlight_color = (255, 0, 0, 100)  # RGBA: Yellow with 50% opacity
-        # highlight_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-        # highlight_surface.fill(highlight_color)
-        # screen.blit(highlight_surface, self.rect)
+        highlight_color = (255, 0, 0, 100)  # RGBA: Red with 50% opacity
+        highlight_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+        highlight_surface.fill(highlight_color)
+        screen.blit(highlight_surface, self.rect)
 
+    def draw_selected_effect(self, screen):
         # Draw a border around the unit to indicate selection
         highlight_color = (255, 255, 0)  # Yellow
         border_thickness = 2
@@ -175,6 +177,8 @@ class BaseUnit():
             self.draw_spell_effect(screen, 'speed')
         elif self.has_bloodlust:
             self.draw_spell_effect(screen, 'bloodlust')
+        if (self.health / self.initial_health) < 0.2:
+            self.draw_damaged_effect(screen)
         self.draw_team_effect(screen)
 
     def create_rect(self, img=None):

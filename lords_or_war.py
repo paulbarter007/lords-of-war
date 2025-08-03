@@ -21,8 +21,8 @@ space_width = 75
 space_height = 75
 from Board import make_random_board
 from Teams import team_wolf, team_barbarian
-board_height_units = 20
-board_width_units = 20
+board_height_units = 5
+board_width_units = 5
 board = make_random_board(team_wolf, team_barbarian, board_width_units, board_height_units, space_width, space_height, percentage_road=0.0)
 top_x = 0
 top_y = 0

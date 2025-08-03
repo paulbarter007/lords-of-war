@@ -8,6 +8,7 @@ class Soldier(BaseUnit):
         self.name = "Soldier"
         super().__init__(x, y, team)
         self.health = 100
+        self.initial_health = 100
         self.can_shoot = False
         self.gold_cost = 5
         self.attack_power = 30
@@ -19,6 +20,7 @@ class Archer(BaseUnit):
         self.name = "Archer"
         super().__init__(x, y, team)
         self.health = 30
+        self.initial_health = 30
         self.can_shoot = True
         self.range = 200
         self.attack_power = 50
@@ -32,6 +34,7 @@ class Settler(BaseUnit):
         self.name = "Settler"
         super().__init__(x, y, team)
         self.health = 5
+        self.initial_health = 5
         self.attack_power = 0
         self.defense_power = 0
         self.movement = 350
@@ -86,43 +89,47 @@ class WolfHero(Hero):
         self.name = "wolf-hero"
         super().__init__(x, y, team)
         self.health = 150
+        self.initial_health = 150
         self.attack_power = 50
         self.defense_power = 50
-        self.movement = 550
-        self.initial_movement = 550
+        self.movement = 750
+        self.initial_movement = 750
 
 class BarbarianHero(Hero):
     def __init__(self, x, y, team):
         self.name = "barbarian-hero"
         super().__init__(x, y, team)
         self.health = 150
+        self.initial_health = 150
         self.attack_power = 150
         self.defense_power = 80
-        self.movement = 350
-        self.initial_movement = 350
+        self.movement = 450
+        self.initial_movement = 450
 
 class Wolf(BaseUnit):
     def __init__(self, x, y, team):
         self.name = "Wolf"
         super().__init__(x, y, team)
         self.health = 100
+        self.initial_health = 100
         self.can_shoot = False
         self.gold_cost = 5
         self.attack_power = 30
         self.defense_power = 20
-        self.movement = 650
-        self.initial_movement = 650
+        self.movement = 850
+        self.initial_movement = 850
 
 class Barbarian(BaseUnit):
     def __init__(self, x, y, team):
         self.name = "Barbarian"
         super().__init__(x, y, team)
         self.health = 100
+        self.initial_health = 100
         self.can_shoot = False
         self.gold_cost = 5
         self.attack_power = 80
-        self.movement = 250
-        self.initial_movement = 250
+        self.movement = 350
+        self.initial_movement = 350
         self.defense_power = 45
 
 class BarbarianHorde(BaseUnit):
@@ -130,6 +137,7 @@ class BarbarianHorde(BaseUnit):
         self.name = "Barbarian-horde"
         super().__init__(x, y, team)
         self.health = 25
+        self.initial_health = 25
         self.can_shoot = False
         self.attack_power = 30
         self.movement = 0
@@ -141,6 +149,7 @@ class Bats(BaseUnit):
         self.name = "Bats"
         super().__init__(x, y, team)
         self.health = 10
+        self.initial_health = 10
         self.fly = True
         self.attack_power = 15
         self.movement = 450
@@ -153,7 +162,8 @@ class Knight(BaseUnit):
         super().__init__(x, y, team)
         self.gold_cost = 7
         self.health = 120
+        self.initial_health = 120
         self.attack_power = 100
-        self.movement = 600
-        self.initial_movement = 600
+        self.movement = 800
+        self.initial_movement = 800
         self.defense_power = 50
