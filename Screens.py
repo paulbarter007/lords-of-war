@@ -3,6 +3,7 @@ import pygame
 from Attack import show_popup
 from Teams import Teams
 from Units.Spaces import SpaceTypes, Road
+from Units.Units import Spearman, Knight, Archer
 from Utils import handle_end_turn, save_game
 from sounds.Sounds import play_sound
 
@@ -22,7 +23,7 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
                    current_active_team, moving, current_active_unit, possible_dest_space_ids, team_wolf, team_barbarian,
                    settle_button, buy_soldier_button, save_game_button, research_road_button, research_archery_button,
                    move_button, search_ruins_button, research_speed_spell_button, research_bloodlust_spell_button,
-                   knight_button):
+                   knight_button, spearman_button):
     if fire_button.rect.collidepoint(event.pos):
         firing_is_active = not firing_is_active
         toggle_button(fire_button, move_button)
@@ -47,9 +48,14 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
     if save_game_button.rect.collidepoint(event.pos):
         save_game(board, current_active_team, team_wolf, team_barbarian)
     if research_archery_button.rect.collidepoint(event.pos):
-        research_archery(screen, current_active_team, active_space)
+        research_unit_button(screen, "archery", current_active_team, active_space, Archer, 7, 7,
+                             "Your noble race has researched the noble art of archery, nobly. You may now nobly buy archers.", [])
+    if spearman_button.rect.collidepoint(event.pos):
+        research_unit_button(screen, "spearman", current_active_team, active_space, Spearman, 12, 7,
+                             "Spearman - let it fly!", ["archery"])
     if knight_button.rect.collidepoint(event.pos):
-        research_knight_button(screen, current_active_team, active_space)
+        research_unit_button(screen, "knight", current_active_team, active_space, Knight, 15, 8,
+                             "Knights, King Arthur, Lancelot, swords... all the good things!", ["archery", "spearman"])
     if research_road_button.rect.collidepoint(event.pos):
         research_road(screen, current_active_team, active_space, board)
     if search_ruins_button.rect.collidepoint(event.pos):
@@ -84,7 +90,7 @@ def buy_soldier(screen, current_active_team, active_space):
 def research_road(screen, current_active_team, active_space, board):
     road_cost = 3
     if current_active_team.total_resources < road_cost:
-        show_popup(screen, "Not enough resources, {road_cost} needed", default_font)
+        show_popup(screen, f"Not enough resources, {road_cost} needed", default_font)
     else:
         if not current_active_team.researched_roads:
             current_active_team.researched_roads = True
@@ -106,47 +112,29 @@ def research_road(screen, current_active_team, active_space, board):
         else:
             show_popup(screen, "Click on a plain or forrest next to a city or road you own", default_font)
 
-def research_archery(screen, current_active_team, active_space):
-    from Units.Units import Archer
-    if current_active_team.total_resources < 7:
-        show_popup(screen, "Not enough resources, 7 needed", default_font)
-    else:
-        if not current_active_team.researched_archery:
-            current_active_team.researched_archery = True
-            play_sound('sounds\\research.wav')
-            show_popup(screen,
-                       "Your noble race has researched the noble art of archery, nobly. You may now nobly buy archers.",
-                       default_font)
-            current_active_team.total_resources -= 7
-        elif active_space and active_space.type == SpaceTypes.CITY and active_space.owner == current_active_team:
-            if current_active_team.total_gold < 7:
-                show_popup(screen, "Not enough gold, 7 needed", default_font)
-            else:
-                current_active_team.buy_unit(active_space, Archer(1, 2, current_active_team.type))
+def research_unit_button(screen, research_name, current_active_team, active_space, unit_class, resource_cost, gold_cost, message, pre_requisites):
+    if pre_requisites:
+        for pre_requisite in pre_requisites:
+            if not getattr(current_active_team, "researched_" + pre_requisite):
+                show_popup(screen, f"You need to research {pre_requisite} first", default_font)
+                return
+    if not getattr(current_active_team, "researched_" + research_name):
+        # Have not yet researched this unit
+        if current_active_team.total_resources < resource_cost:
+            show_popup(screen, f"Not enough resources, {resource_cost} needed", default_font)
+            return
         else:
-            show_popup(screen, "Click on a city first", default_font)
-
-def research_knight_button(screen, current_active_team, active_space):
-    from Units.Units import Knight
-    if not current_active_team.researched_archery:
-        show_popup(screen, "You need to research archery first", default_font)
-        return
-
-    if current_active_team.total_resources < 7:
-        show_popup(screen, "Not enough resources, 7 needed", default_font)
-    else:
-        if not current_active_team.researched_knights:
-            current_active_team.researched_knights = True
+            setattr(current_active_team, "researched_" + research_name, True)
             play_sound('sounds\\research.wav')
-            show_popup(screen,
-                       "Knights, King Arthur, Lancelot, swords... all the good things!",
-                       default_font)
-            current_active_team.total_resources -= 7
-        elif active_space and active_space.type == SpaceTypes.CITY and active_space.owner == current_active_team:
-            if current_active_team.total_gold < 7:
-                show_popup(screen, "Not enough gold, 7 needed", default_font)
+            show_popup(screen, message, default_font)
+            current_active_team.total_resources -= resource_cost
+    else:
+        # Have researched this unit, can buy it
+        if active_space and active_space.type == SpaceTypes.CITY and active_space.owner == current_active_team:
+            if current_active_team.total_gold < gold_cost:
+                show_popup(screen, f"Not enough gold, {gold_cost} needed", default_font)
             else:
-                current_active_team.buy_unit(active_space, Knight(1, 2, current_active_team.type))
+                current_active_team.buy_unit(active_space, unit_class(1, 2, current_active_team.type))
         else:
             show_popup(screen, "Click on a city first", default_font)
 
@@ -169,12 +157,12 @@ def research_spell(screen, current_active_team, current_active_unit, type_spell)
         unit_spell_affecting = "attack_power"
         if current_active_unit:
             spell_value = current_active_unit.attack_power + 50
-        spell_message = "Bloodlust spell.... your blood is boiling!"
+        spell_message = "Your blood is boiling!"
     else:
         show_popup(screen, "Unknown spell type", default_font)
         return
     if current_active_team.total_resources < cost:
-        show_popup(screen, "Not enough resources, {cost} needed", default_font)
+        show_popup(screen, f"Not enough resources, {cost} needed", default_font)
     else:
         if not getattr(current_active_team, spell_attribute):
             setattr(current_active_team, spell_attribute, True)
@@ -339,7 +327,7 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
                                  buy_button, settle_button, buy_soldier_button, research_road_button,
                                  research_archery_button, save_game_button, move_button, current_active_unit, active_space,
                                  search_ruins_button, research_speed_spell_button, research_bloodlust_spell_button,
-                                 knight_button, bottom_panel, right_panel):
+                                 knight_button, bottom_panel, right_panel, spearman_button):
     screen.fill(SCREEN_BACKGROUND)
     draw_board(screen, board, current_active_team)
     right_panel.draw()
@@ -362,6 +350,7 @@ def display_screen_and_resources(screen, board, end_turn_button, fire_button, re
     research_road_button.draw(new_text='Road [3]', font_type='small')
     research_archery_button.draw(new_text='Archery [7]', font_type='small')
     knight_button.draw(new_text='Knights [7]', font_type='small')
+    spearman_button.draw(new_text='Spearman [12/7]', font_type='small')
     research_speed_spell_button.draw(new_text='Speed Spell [15]', font_type='small')
     research_bloodlust_spell_button.draw(new_text='Bloodlust Spell [6]', font_type='small')
     if current_active_unit and current_active_unit.type == 'Hero':

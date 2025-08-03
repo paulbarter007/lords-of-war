@@ -1,6 +1,7 @@
 import pygame
 
 from Attack import show_popup
+from Utils import handle_screen_scrolling
 
 pygame.init()
 from pygame.locals import *
@@ -47,7 +48,8 @@ save_game_button = BaseButton(screen, 'Save Game', 1250, 730, 200, 40, base_colo
 
 research_road_button = BaseButton(screen, 'Research Road', 1120, 500, 120, 22, base_color=BUTTON_COLOR)
 research_archery_button = BaseButton(screen, 'Research Archery', 1120, 550, 120, 18, base_color=BUTTON_COLOR)
-knight_button = BaseButton(screen, 'Research Knights', 1290, 550, 120, 18, base_color=BUTTON_COLOR)
+spearman_button = BaseButton(screen, 'Research Spearman', 1250, 550, 140, 18, base_color=BUTTON_COLOR)
+knight_button = BaseButton(screen, 'Research Knights', 1400, 550, 120, 18, base_color=BUTTON_COLOR)
 speed_button = BaseButton(screen, 'Research Speed Spell', 1120, 600, 130, 18, base_color=BUTTON_COLOR)
 bloodlust_button = BaseButton(screen, 'Research Bloodlust Spell', 1120, 650, 150, 18, base_color=BUTTON_COLOR)
 
@@ -88,7 +90,7 @@ while running:
                                    active_space, current_active_team, moving, current_active_unit, possible_dest_space_ids,
                                    team_wolf, team_barbarian, settle_button, buy_soldier_button, save_game_button, research_road_button,
                                    research_archery_button, move_button, search_ruins_button, speed_button,
-                                   bloodlust_button, knight_button))
+                                   bloodlust_button, knight_button, spearman_button))
                 current_active_unit, active_space, unit_stack = get_current_active_unit(screen, current_active_team,
                                                                                         event.pos[0], event.pos[1], board)
                 if active_space and not (current_active_team == team_wolf and active_space.is_visible_by_wolf) and not (current_active_team == team_barbarian and active_space.is_visible_by_barbarian):
@@ -127,23 +129,8 @@ while running:
                 remove_units_hovered(board)
                 hovered_unit = check_hover_unit(current_active_team, screen, board, event.pos)
             elif event.type == pygame.KEYDOWN or (hasattr(event, "button") and event.type == pygame.MOUSEBUTTONDOWN and event.button in [4, 5]):
-                scrolled = False
-                if (hasattr(event, "key") and event.key == pygame.K_DOWN) or (hasattr(event, "button") and event.button == 5):
-                    if top_y < (board_height_units + 1) - (h / space_height):
-                        top_y += 3
-                        scrolled = True
-                elif (hasattr(event, "key") and event.key == pygame.K_UP) or (hasattr(event, "button") and event.button == 4):
-                    if top_y >= 1:
-                        top_y -= 3
-                        scrolled = True
-                elif event.key == pygame.K_LEFT:
-                    if top_x >= 1:
-                        top_x -= 3
-                        scrolled = True
-                elif event.key == pygame.K_RIGHT:
-                    if top_x < (board_width_units + 1) - (w / space_width) + (right_panel_width / space_width):
-                        top_x += 3
-                        scrolled = True
+                top_x, top_y, scrolled = handle_screen_scrolling(event, top_x, top_y, w, h, space_width,
+                                                                 space_height, board_width_units, board_height_units, right_panel_width)
                 if scrolled:
                     adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y, current_active_team)
 
@@ -151,7 +138,8 @@ while running:
                                      current_active_team, team_wolf, team_barbarian, current_selected_unit_info,
                                      buy_settler_button, settle_button, buy_soldier_button, research_road_button,
                                      research_archery_button, save_game_button, move_button, current_active_unit, active_space,
-                                     search_ruins_button, speed_button, bloodlust_button, knight_button, bottom_panel, right_panel)
+                                     search_ruins_button, speed_button, bloodlust_button, knight_button, bottom_panel, right_panel,
+                                     spearman_button)
         pygame.display.update()
     except Exception as e:
         show_popup(screen, str(e))

@@ -157,3 +157,24 @@ def get_space_unit_is_in(board, unit):
         if unit in space.units:
             return space
     return None
+
+def handle_screen_scrolling(event, top_x, top_y, w, h, space_width, space_height,
+                            board_width_units, board_height_units, right_panel_width):
+    scrolled = False
+    if (hasattr(event, "key") and event.key == pygame.K_DOWN) or (hasattr(event, "button") and event.button == 5):
+        if top_y < (board_height_units + 1) - (h / space_height):
+            top_y += 3
+            scrolled = True
+    elif (hasattr(event, "key") and event.key == pygame.K_UP) or (hasattr(event, "button") and event.button == 4):
+        if top_y >= 1:
+            top_y -= 3
+            scrolled = True
+    elif event.key == pygame.K_LEFT:
+        if top_x >= 1:
+            top_x -= 3
+            scrolled = True
+    elif event.key == pygame.K_RIGHT:
+        if top_x < (board_width_units + 1) - (w / space_width) + (right_panel_width / space_width):
+            top_x += 3
+            scrolled = True
+    return top_x, top_y, scrolled

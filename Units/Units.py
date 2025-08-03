@@ -160,10 +160,24 @@ class Knight(BaseUnit):
     def __init__(self, x, y, team):
         self.name = "Knight"
         super().__init__(x, y, team)
-        self.gold_cost = 7
+        self.gold_cost = 8
         self.health = 120
         self.initial_health = 120
         self.attack_power = 100
         self.movement = 800
         self.initial_movement = 800
         self.defense_power = 50
+
+class Spearman(BaseUnit):
+    def __init__(self, x, y, team):
+        self.name = "Spearman"
+        super().__init__(x, y, team)
+        self.gold_cost = 7
+        self.health = 55
+        self.initial_health = 55
+        self.can_shoot = True
+        self.range = 150
+        self.attack_power = 100
+        self.movement = 350
+        self.initial_movement = 350
+        self.defense_power = 35
