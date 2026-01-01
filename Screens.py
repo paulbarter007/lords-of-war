@@ -23,7 +23,7 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
                    current_active_team, moving, current_active_unit, possible_dest_space_ids, team_wolf, team_barbarian,
                    settle_button, buy_soldier_button, save_game_button, research_road_button, research_archery_button,
                    move_button, search_ruins_button, research_speed_spell_button, research_bloodlust_spell_button,
-                   knight_button, spearman_button):
+                   knight_button, spearman_button, move_number, cooperative_game, ogre_space, ogre):
     if fire_button.rect.collidepoint(event.pos):
         firing_is_active = not firing_is_active
         toggle_button(fire_button, move_button)
@@ -36,9 +36,11 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
             current_active_team.buy_unit(active_space, Settler(1, 2, current_active_team.type))
     if end_turn_button.rect.collidepoint(event.pos):
         (current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-         team_barbarian) = handle_end_turn(board, screen, current_active_team, moving, current_active_unit,
+         team_barbarian, ogre_space, ogre) = handle_end_turn(board, screen, current_active_team, moving, current_active_unit,
                                            active_space,
-                                           possible_dest_space_ids, team_wolf, team_barbarian)
+                                           possible_dest_space_ids, team_wolf, team_barbarian, move_number,
+                                           cooperative_game, ogre_space, ogre)
+        move_number += 1
     if settle_button.rect.collidepoint(event.pos):
         if (current_active_unit and current_active_unit.name == 'Settler' and active_space and active_space.name != "City" and
                 active_space.name != "River" and active_space.name != "Mountain" and current_active_unit in active_space.units):
@@ -65,7 +67,7 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
     if research_bloodlust_spell_button.rect.collidepoint(event.pos):
         research_spell(screen, current_active_team, current_active_unit, 'bloodlust')
     return (firing_is_active, current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-            team_barbarian)
+            team_barbarian, move_number, ogre_space, ogre)
 
 def is_adjacent_city_or_road(current_space, board, current_active_team):
     # next to any city or road you own

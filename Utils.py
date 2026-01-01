@@ -1,4 +1,5 @@
 from Attack import show_popup
+from Badies import move_badies
 from Teams import BaseTeam, WolfTeam, BarbarianTeam
 from Units.Spaces import restore_movement_units, Plain, City, Mountain, Forest, Road, River
 import random
@@ -58,7 +59,8 @@ def load_game(file_path):
     return board, current_active_team, team_wolf, team_barbarian
 
 def handle_end_turn(board, screen, current_active_team, moving, current_active_unit, active_space,
-                                possible_dest_space_ids, team_wolf, team_barbarian):
+                    possible_dest_space_ids, team_wolf, team_barbarian, move_number,
+                    cooperative_game, ogre_space, ogre):
     from Screens import clear_all_temp_visibility
     restore_movement_units(board, current_active_team)
     current_active_team = team_barbarian if current_active_team.name == 'Wolf' else team_wolf
@@ -73,7 +75,12 @@ def handle_end_turn(board, screen, current_active_team, moving, current_active_u
     current_active_team.calculate_resources()
     handle_random_event(current_active_team, screen, team_wolf, team_barbarian, board)
     clear_all_temp_visibility(board)
-    return current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf, team_barbarian
+    if cooperative_game:
+        if ogre:
+            ogre.movement = ogre.initial_movement
+        ogre_space, ogre = move_badies(move_number, board, screen, ogre_space, ogre)
+    return current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf, \
+        team_barbarian, ogre_space, ogre
 
 def increase_random_unit_attack_strength(team, board):
     for space in board:

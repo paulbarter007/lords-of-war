@@ -128,12 +128,12 @@ class BaseSpace():
         screen.blit(self.image, self.rect)
         if self.type in [SpaceTypes.CITY, SpaceTypes.BARBARIAN_VILLAGE] and self.owner:
             self.draw_team_effect(screen)
-        if current_active_team.type == Teams.WOLF:
-            if not self.is_visible_by_wolf and not self.is_temp_visible_by_wolf:
-                self.draw_invisible_effect(screen)
-        if current_active_team.type == Teams.BARBARIAN:
-            if not self.is_visible_by_barbarian and not self.is_temp_visible_by_barbarian:
-                self.draw_invisible_effect(screen)
+        # if current_active_team.type == Teams.WOLF:
+        #     if not self.is_visible_by_wolf and not self.is_temp_visible_by_wolf:
+        #         self.draw_invisible_effect(screen)
+        # if current_active_team.type == Teams.BARBARIAN:
+        #     if not self.is_visible_by_barbarian and not self.is_temp_visible_by_barbarian:
+        #         self.draw_invisible_effect(screen)
         if self.is_valid_hover:
             self.draw_valid_hovered_effect(screen)
         if self.is_selected:
@@ -403,7 +403,7 @@ def snap_to_space(screen, active_team, inactive_team, board, possible_dest_space
             if space.id in possible_dest_spaces:
                 centre_active_space = (dragged_from_space.rect.centerx, dragged_from_space.rect.centery)
                 centre_current_space = (space.rect.centerx, space.rect.centery)
-                unit.movement -= total_terrain_move_penalty(space, unit, centre_active_space, centre_current_space, board)
+                unit.movement -= total_terrain_move_penalty(unit, centre_active_space, centre_current_space, board)
                 if len(space.units) > 0 and space.units[0].team != unit.team:
                     enemy = space.units[0]
                     defeated = Attack(unit, enemy, dragged_from_space, space).execute()
@@ -447,7 +447,7 @@ def is_space_adjacent(space1, space2):
     distance = pygame.math.Vector2(centre_space1).distance_to(centre_space2)
     return distance < 110  # Assuming spaces are close enough if within 100 pixels
 
-def total_terrain_move_penalty(current_space, unit, start_point, end_point, board):
+def total_terrain_move_penalty(unit, start_point, end_point, board):
     # Calculate the move penalty based on the terrain type between two points
     total_move_penalty = 0
     for space in board:
@@ -494,7 +494,7 @@ def check_hover_unit(active_team, screen, board, mouse_position, firing=False):
 
 def handle_move(distance, unit, centre_active_space, centre_current_space, space, screen, board, current_active_team):
     possible_dest_space_ids = set()
-    terrain_penalty = total_terrain_move_penalty(space, unit, centre_active_space, centre_current_space, board)
+    terrain_penalty = total_terrain_move_penalty(unit, centre_active_space, centre_current_space, board)
     space.draw(screen, current_active_team)
     if unit.movement >= terrain_penalty:
         enemy = None
@@ -505,6 +505,20 @@ def handle_move(distance, unit, centre_active_space, centre_current_space, space
     else:
         space.is_invalid_hover = True
     return list(possible_dest_space_ids)
+
+def closest_city_space(board, x, y):
+    # return closest city to the point
+    min_distance_to_city = 9999999
+    closest_city_space = None
+    for space in board:
+        if space.type == SpaceTypes.CITY:
+            centre_space = (space.rect.centerx, space.rect.centery)
+            distance_to_city = pygame.math.Vector2(centre_space).distance_to((x, y))
+            if distance_to_city < min_distance_to_city:
+                min_distance_to_city = distance_to_city
+                closest_city_space = space
+    return closest_city_space
+
 
 def handle_shoot(distance, unit, centre_active_space, centre_current_space, space, screen, board, current_active_team):
     space.draw(screen, current_active_team)

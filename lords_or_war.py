@@ -18,13 +18,15 @@ BUTTON_COLOR = (100, 100, 100)
 
 # w, h = 1550, 795
 w, h = 1350, 800
+move_number = 1
+cooperative_game = True
 screen = pygame.display.set_mode((w, h))
 space_width = 75
 space_height = 75
 from Board import make_random_board
 from Teams import team_wolf, team_barbarian
-board_height_units = 15
-board_width_units = 15
+board_height_units = 10
+board_width_units = 10
 board = make_random_board(team_wolf, team_barbarian, board_width_units, board_height_units, space_width, space_height, percentage_road=0.0)
 top_x = 0
 top_y = 0
@@ -86,6 +88,8 @@ possible_dest_space_ids = []
 hovered_unit = None
 current_selected_unit_info = []
 unit_stack = []
+ogre_space = None
+ogre = None
 
 while running:
     try:
@@ -100,16 +104,17 @@ while running:
                 remove_hover_effects(board)
                 possible_dest_space_ids = []
                 (firing_is_active, current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-                team_barbarian) = (
+                team_barbarian, move_number, ogre_space, ogre) = (
                     handle_buttons(event, board, screen, fire_button, buy_settler_button, end_turn_button, firing_is_active,
                                    active_space, current_active_team, moving, current_active_unit, possible_dest_space_ids,
                                    team_wolf, team_barbarian, settle_button, buy_soldier_button, save_game_button, research_road_button,
                                    research_archery_button, move_button, search_ruins_button, speed_button,
-                                   bloodlust_button, knight_button, spearman_button))
+                                   bloodlust_button, knight_button, spearman_button, move_number, cooperative_game,
+                                   ogre_space, ogre))
                 current_active_unit, active_space, unit_stack = get_current_active_unit(screen, current_active_team,
                                                                                         event.pos[0], event.pos[1], board)
-                if active_space and not (current_active_team == team_wolf and active_space.is_visible_by_wolf) and not (current_active_team == team_barbarian and active_space.is_visible_by_barbarian):
-                    current_selected_unit_info = ["A mysterious mist!"]
+                if active_space and not (current_active_team == team_wolf and active_space.is_visible_by_wolf) and \
+                        not (current_active_team == team_barbarian and active_space.is_visible_by_barbarian):
                     current_selected_unit_info = ["A mysterious mist!"]
                 else:
                     if current_active_unit:
