@@ -78,10 +78,11 @@ class Attack():
         if self.defender.health <= 0:
             self.attacker.play_attack_sound()
             play_sound('sounds\\die.wav')
-            show_popup(pygame.display.get_surface(), f"{self.defender.name} has been defeated!", font)
+            show_popup(pygame.display.get_surface(), f"{self.defender.name} has been defeated by {self.attacker.name}!", font)
             return True  # Defender is defeated
         else:
             self.attacker.play_attack_sound()
-            show_popup(pygame.display.get_surface(), f"{self.defender.name} takes {damage} damage!"
+            show_popup(pygame.display.get_surface(), f"{self.defender.name} takes {damage} damage from "
+                                                     f"{self.attacker.name}!"
                                                      f" health left: {self.defender.health}", font)
             return False  # Defender survives

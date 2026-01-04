@@ -19,7 +19,7 @@ def spawn_ogre(board, screen):
     for space in board:
         if space_counter > 5:   # Prevent Ogre spawning too close to initial city
             rand_value = random.random()
-            if rand_value > 0.8 and not space.units and not space.type in (SpaceTypes.CITY, SpaceTypes.RIVER):
+            if rand_value > 0.95 and not space.units and not space.type in (SpaceTypes.CITY, SpaceTypes.RIVER):
                 ogre = Ogre(space.x, space.y, Teams.ENEMY)
                 space.add_unit(ogre)
                 ogre_added = True
@@ -35,9 +35,11 @@ def spawn_ogre(board, screen):
     return ogre_space, ogre
 
 def move_badies(move_nr, board, screen, ogre_space, ogre):
-    if move_nr == 2:
+    if move_nr <= 1:
+        return None, None
+    if not ogre and move_nr == 2:
         ogre_space, ogre = spawn_ogre(board, screen)
-    elif move_nr > 2 and ogre:
+    elif ogre:  # Move an existing Ogre
         ogre_space, ogre = move_badie(ogre_space, BadieTypes.Ogre, ogre, board)
     return ogre_space, ogre
 
@@ -48,15 +50,18 @@ def handle_potential_attack_for_badie(attacker_space, defender_space, unit, boar
         defeated = Attack(unit, enemy, attacker_space, defender_space).execute()
         if defeated:
             defender_space.remove_unit(enemy)
+    # Badie moves to barbarian horde space
+    if len(defender_space.units) > 0 and defender_space.units[0].team == unit.team:
+        defender_space.add_unit(unit)
+        unit.position = defender_space.rect.center
+        unit.rect.center = defender_space.rect.center
+        did_badie_move_forward = True
     if len(defender_space.units) == 0 or defender_space.units[0].id == unit.id:
         defender_space.add_unit(unit)
         attacker_space.remove_unit(unit)
         unit.position = defender_space.rect.center
         unit.rect.center = defender_space.rect.center
         did_badie_move_forward = True
-
-        # TODO - re-draw the board here and show users that the badie moved
-
         if defender_space.type in [SpaceTypes.CITY]:
             new_space = Plain(defender_space.rect.centerx, defender_space.rect.centery)
             new_space.units = [unit]
@@ -87,13 +92,15 @@ def move_badie(badie_space, badie_type, badie, board):
     if badie_type == BadieTypes.Ogre:
         target_city_space = closest_city_space(board, badie_space.x, badie_space.y)
         spaces_en_route_to_city = get_route_to_dest(badie_space, target_city_space, board, badie)
+        # just move one space, then re-draw to show badie movement
         for space in spaces_en_route_to_city:
             if space.id == badie_space.id:
                 continue
             if badie.movement >= space.move_penalty:
                 badie.movement -= space.move_penalty
-                if (handle_potential_attack_for_badie(badie_space, space, badie, board)):
+                if handle_potential_attack_for_badie(badie_space, space, badie, board):
                     badie_space = space
+                break
             else:
                 break
     return badie_space, badie
@@ -102,8 +109,8 @@ class Ogre(BaseUnit):
     def __init__(self, x, y, team):
         self.name = "Ogre"
         super().__init__(x, y, team)
-        self.health = 1000
-        self.initial_health = 1000
+        self.health = 300
+        self.initial_health = 300
         self.can_shoot = False
         self.attack_power = 70
         self.movement = 450

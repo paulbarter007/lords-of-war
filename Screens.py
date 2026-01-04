@@ -23,7 +23,7 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
                    current_active_team, moving, current_active_unit, possible_dest_space_ids, team_wolf, team_barbarian,
                    settle_button, buy_soldier_button, save_game_button, research_road_button, research_archery_button,
                    move_button, search_ruins_button, research_speed_spell_button, research_bloodlust_spell_button,
-                   knight_button, spearman_button, move_number, cooperative_game, ogre_space, ogre):
+                   knight_button, spearman_button, move_number):
     if fire_button.rect.collidepoint(event.pos):
         firing_is_active = not firing_is_active
         toggle_button(fire_button, move_button)
@@ -36,10 +36,10 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
             current_active_team.buy_unit(active_space, Settler(1, 2, current_active_team.type))
     if end_turn_button.rect.collidepoint(event.pos):
         (current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-         team_barbarian, ogre_space, ogre) = handle_end_turn(board, screen, current_active_team, moving, current_active_unit,
-                                           active_space,
-                                           possible_dest_space_ids, team_wolf, team_barbarian, move_number,
-                                           cooperative_game, ogre_space, ogre)
+         team_barbarian) = handle_end_turn(board, screen, current_active_team, moving,
+                                                             current_active_unit,
+                                                             active_space,
+                                                             possible_dest_space_ids, team_wolf, team_barbarian)
         move_number += 1
     if settle_button.rect.collidepoint(event.pos):
         if (current_active_unit and current_active_unit.name == 'Settler' and active_space and active_space.name != "City" and
@@ -66,8 +66,8 @@ def handle_buttons(event, board, screen, fire_button, buy_settler_button, end_tu
         research_spell(screen, current_active_team, current_active_unit, 'speed')
     if research_bloodlust_spell_button.rect.collidepoint(event.pos):
         research_spell(screen, current_active_team, current_active_unit, 'bloodlust')
-    return (firing_is_active, current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-            team_barbarian, move_number, ogre_space, ogre)
+    return (firing_is_active, current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids,
+            team_wolf, team_barbarian, move_number)
 
 def is_adjacent_city_or_road(current_space, board, current_active_team):
     # next to any city or road you own
@@ -272,12 +272,14 @@ def draw_board(screen, board, current_active_team):
         space.draw(screen, current_active_team)
     for space in board:
         if len(space.units) > 0:
-            if current_active_team.type == Teams.WOLF and (space.is_visible_by_wolf or space.is_temp_visible_by_wolf):
-                temp_adjacent_spaces_visible(board, space, Teams.WOLF)
-                space.draw_units(screen)
-            elif current_active_team.type == Teams.BARBARIAN and (space.is_visible_by_barbarian or space.is_temp_visible_by_barbarian):
-                space.draw_units(screen)
-                temp_adjacent_spaces_visible(board, space, Teams.BARBARIAN)
+            # TESTING ONLY!!!
+            space.draw_units(screen)
+            # if current_active_team.type == Teams.WOLF and (space.is_visible_by_wolf or space.is_temp_visible_by_wolf):
+            #     temp_adjacent_spaces_visible(board, space, Teams.WOLF)
+            #     space.draw_units(screen)
+            # elif current_active_team.type == Teams.BARBARIAN and (space.is_visible_by_barbarian or space.is_temp_visible_by_barbarian):
+            #     space.draw_units(screen)
+            #     temp_adjacent_spaces_visible(board, space, Teams.BARBARIAN)
 
 def adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y, current_active_team):
     row_nr = 0

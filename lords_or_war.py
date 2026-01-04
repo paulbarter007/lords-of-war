@@ -1,6 +1,7 @@
 import pygame
 
 from Attack import show_popup
+from Badies import move_badies
 from Utils import handle_screen_scrolling
 
 pygame.init()
@@ -103,14 +104,39 @@ while running:
                 remove_units_hovered(board)
                 remove_hover_effects(board)
                 possible_dest_space_ids = []
-                (firing_is_active, current_active_team, moving, current_active_unit, active_space, possible_dest_space_ids, team_wolf,
-                team_barbarian, move_number, ogre_space, ogre) = (
+                continue_handling_buttons = True
+                if end_turn_button.rect.collidepoint(event.pos) and cooperative_game:
+                    new_ogre_space, ogre = move_badies(move_number, board, screen, ogre_space, ogre)
+                    move_ogre = False
+                    if ogre and new_ogre_space and ogre_space and (new_ogre_space.id != ogre_space.id):
+                        move_ogre = True
+                    ogre_space = new_ogre_space
+                    while move_ogre:
+                        top_x = int(ogre.position[0] / 75)
+                        top_y = int(ogre.position[1] / 75)
+                        adjust_units_after_scrolling(screen, board, board_width_units, top_x, top_y,
+                                                     current_active_team)
+                        display_screen_and_resources(screen, board, end_turn_button, fire_button, resources_screen,
+                                                     unit_info_screen, current_active_team, team_wolf, team_barbarian,
+                                                     current_selected_unit_info, buy_settler_button, settle_button,
+                                                     buy_soldier_button, research_road_button, research_archery_button,
+                                                     save_game_button, move_button, current_active_unit, active_space,
+                                                     search_ruins_button, speed_button, bloodlust_button, knight_button,
+                                                     bottom_panel, right_panel, spearman_button)
+                        pygame.display.update()
+                        even_newer_ogre_space, ogre = move_badies(move_number, board, screen, new_ogre_space, ogre)
+                        ogre_space = even_newer_ogre_space
+                        if even_newer_ogre_space == new_ogre_space:
+                            move_ogre = False
+                    if ogre:
+                        ogre.movement = ogre.initial_movement
+                (firing_is_active, current_active_team, moving, current_active_unit, active_space,
+                 possible_dest_space_ids, team_wolf, team_barbarian, move_number) = (
                     handle_buttons(event, board, screen, fire_button, buy_settler_button, end_turn_button, firing_is_active,
                                    active_space, current_active_team, moving, current_active_unit, possible_dest_space_ids,
                                    team_wolf, team_barbarian, settle_button, buy_soldier_button, save_game_button, research_road_button,
                                    research_archery_button, move_button, search_ruins_button, speed_button,
-                                   bloodlust_button, knight_button, spearman_button, move_number, cooperative_game,
-                                   ogre_space, ogre))
+                                   bloodlust_button, knight_button, spearman_button, move_number))
                 current_active_unit, active_space, unit_stack = get_current_active_unit(screen, current_active_team,
                                                                                         event.pos[0], event.pos[1], board)
                 if active_space and not (current_active_team == team_wolf and active_space.is_visible_by_wolf) and \
@@ -118,8 +144,8 @@ while running:
                     current_selected_unit_info = ["A mysterious mist!"]
                 else:
                     if current_active_unit:
-                            moving = True
-                            current_selected_unit_info = current_active_unit.get_info(unit_stack)
+                        moving = True
+                        current_selected_unit_info = current_active_unit.get_info(unit_stack)
                     else:
                         if active_space:
                             current_selected_unit_info = active_space.get_info()
@@ -134,7 +160,8 @@ while running:
                             shoot_at_space(board, current_active_unit, event.pos)
                         else:
                             inactive_team = team_wolf if current_active_team.name == "Barbarian" else team_barbarian
-                            snap_to_space(screen, current_active_team, inactive_team, board, possible_dest_space_ids, current_active_unit, active_space)
+                            snap_to_space(screen, current_active_team, inactive_team, board, possible_dest_space_ids,
+                                          current_active_unit, active_space)
                         current_selected_unit_info = current_active_unit.get_info(unit_stack)
                     else:
                         snap_back_to_start(current_active_unit, active_space, None, None, None, out_of_moves=True)
